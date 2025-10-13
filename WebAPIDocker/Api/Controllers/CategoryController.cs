@@ -8,7 +8,6 @@ namespace sepending.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class CategoryController : ControllerBase
 {
     private readonly ICategoryService _service;
