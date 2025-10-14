@@ -36,10 +36,12 @@ jobs:
 
     - name: Build and push Docker image
       run: |
+          cd WebAPIDocker
           docker build -t lephuocbinh123/spending:latest .
 
     - name: Push Docker image
       run: |
+          cd WebAPIDocker
           docker push lephuocbinh123/spending:latest
 
     - name: Trigger Render Deploy
