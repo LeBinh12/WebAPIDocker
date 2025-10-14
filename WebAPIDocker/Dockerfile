@@ -11,11 +11,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebAPIDocker.csproj" , "."]
-RUN dotnet restore "WebAPIDocker.csproj"
 COPY . .
-#WORKDIR "/src/WebAPIDocker"
-RUN dotnet build "WebAPIDocker.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet restore "WebAPIDocker/WebAPIDocker.csproj"
+RUN dotnet build "WebAPIDocker/WebAPIDocker.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
