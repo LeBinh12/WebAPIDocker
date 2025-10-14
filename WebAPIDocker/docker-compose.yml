@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: WebAPIDocker/Dockerfile
     container_name: test-docker
     ports:
       - "5000:8080"
