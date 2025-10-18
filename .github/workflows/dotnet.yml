@@ -58,6 +58,6 @@ jobs:
       run: |
         az webapp config container set \
           --name rg-student \
-          --resource-group <YOUR_RESOURCE_GROUP> \
+          --resource-group DefaultResourceGroup-CCAN \
           --docker-custom-image-name lephuocbinh123/spending:latest
-        az webapp restart --name <YOUR_WEBAPP_NAME> --resource-group DefaultResourceGroup-CCAN
+        az webapp restart --name rg-student --resource-group DefaultResourceGroup-CCAN
