@@ -57,7 +57,7 @@ jobs:
     - name: Deploy to Azure Web App
       run: |
         az webapp config container set \
-          --name <YOUR_WEBAPP_NAME> \
+          --name rg-student \
           --resource-group <YOUR_RESOURCE_GROUP> \
           --docker-custom-image-name lephuocbinh123/spending:latest
-        az webapp restart --name <YOUR_WEBAPP_NAME> --resource-group <YOUR_RESOURCE_GROUP>
+        az webapp restart --name <YOUR_WEBAPP_NAME> --resource-group DefaultResourceGroup-CCAN
