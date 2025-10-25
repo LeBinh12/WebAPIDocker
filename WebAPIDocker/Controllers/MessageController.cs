@@ -9,7 +9,6 @@ namespace WebAPIDocker.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class MessageController : ControllerBase
 {
     private readonly IMessageService _messageService;

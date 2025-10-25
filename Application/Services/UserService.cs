@@ -76,7 +76,47 @@ public class UserService : IUserService
         string token = GenerateJwtToken(existingUser);
 
         return Result<string>.Success(token, "Đăng nhập thành công");
-    }   
+    }
+
+    public async Task<Result<ValidateTokenResponse>> ValidateTokenAsync(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
+
+        try
+        {
+            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidAudience = _config["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            }, out SecurityToken validatedToken);
+
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            var username = jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
+            var role = jwtToken.Claims.First(c => c.Type == ClaimTypes.Role).Value;
+
+            return Result<ValidateTokenResponse>.Success(new ValidateTokenResponse
+            {
+                IsValid = true,
+                Username = username,
+                Role = role,
+                Message = "Token hợp lệ"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Result<ValidateTokenResponse>.Success(new ValidateTokenResponse
+            {
+                IsValid = false,
+                Message = "Token không hợp lệ: " + ex.Message
+            });
+        }
+    }
 
     private string GenerateJwtToken(User user)
     {
@@ -99,4 +139,6 @@ public class UserService : IUserService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+
 }
