@@ -15,40 +15,40 @@ using WebAPIDocker.Middlewares;
 var builder = WebApplication.CreateBuilder(args);
 
 // setup nếu dùng RateLimit ở program.cs
-builder.Services.AddRateLimiter(options =>
-{
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "global",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,                // số request cho phép
-                Window = TimeSpan.FromSeconds(10), // trong 10 giây
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 0
-            }));
+//builder.Services.AddRateLimiter(options =>
+//{
+//    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+//        RateLimitPartition.GetFixedWindowLimiter(
+//            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "global",
+//            factory: _ => new FixedWindowRateLimiterOptions
+//            {
+//                PermitLimit = 5,                // số request cho phép
+//                Window = TimeSpan.FromSeconds(10), // trong 10 giây
+//                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+//                QueueLimit = 0
+//            }));
 
-    // Khi bị giới hạn, chạy callback này
-    options.OnRejected = async (context, token) =>
-    {
-        var httpContext = context.HttpContext;
+//    // Khi bị giới hạn, chạy callback này
+//    options.OnRejected = async (context, token) =>
+//    {
+//        var httpContext = context.HttpContext;
 
-        httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-        httpContext.Response.ContentType = "application/json";
+//        httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+//        httpContext.Response.ContentType = "application/json";
 
-        // Có thể thêm Retry-After để client biết khi nào thử lại
-        httpContext.Response.Headers["Retry-After"] = "10";
+//        // Có thể thêm Retry-After để client biết khi nào thử lại
+//        httpContext.Response.Headers["Retry-After"] = "10";
 
-        var result = JsonSerializer.Serialize(new
-        {
-            status = 429,
-            error = "Too many requests",
-            message = "Bạn đã vượt quá giới hạn yêu cầu. Vui lòng thử lại sau."
-        });
+//        var result = JsonSerializer.Serialize(new
+//        {
+//            status = 429,
+//            error = "Too many requests",
+//            message = "Bạn đã vượt quá giới hạn yêu cầu. Vui lòng thử lại sau."
+//        });
 
-        await httpContext.Response.WriteAsync(result, token);
-    };
-});
+//        await httpContext.Response.WriteAsync(result, token);
+//    };
+//});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -138,7 +138,7 @@ app.UseCors("AllowFrontend");
 app.UseMiddleware<ExceptionMiddleware>();
 
 // app.UseMiddleware<RateLimitMiddleware>(5, 10);
-app.UseRateLimiter();
+//app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -99,12 +99,15 @@ public class UserService : IUserService
             var jwtToken = (JwtSecurityToken)validatedToken;
             var username = jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value;
             var role = jwtToken.Claims.First(c => c.Type == ClaimTypes.Role).Value;
+            var idClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "Id")?.Value;
+            int.TryParse(idClaim, out int userId);
 
             return Result<ValidateTokenResponse>.Success(new ValidateTokenResponse
             {
                 IsValid = true,
                 Username = username,
                 Role = role,
+                Id = userId,
                 Message = "Token hợp lệ"
             });
         }
@@ -124,7 +127,8 @@ public class UserService : IUserService
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Username),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Role),
+            new Claim("Id", user.Id.ToString())
         };
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes((_config["Jwt:Key"])));
