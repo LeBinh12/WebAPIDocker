@@ -10,6 +10,8 @@ services:
     ports:
       - "5000:8080"
       - "8181:8181"   # WebSocket
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=${DB_HOST};Database=${DB_DATABASE};Username=${DB_USERNAME};Password=${DB_PASSWORD};SSL Mode=VerifyFull;Trust Server Certificate=true

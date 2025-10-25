@@ -11,7 +11,6 @@ namespace WebAPIDocker.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 
 public class UserController
 {
@@ -40,4 +39,11 @@ public class UserController
     {
         return await _userService.LoginAsync( request.Username, request.Password);
     }
+
+    [HttpGet("validate")]
+    public async Task<ActionResult<Result<ValidateTokenResponse>>> ValidateToken([FromQuery] string token)
+    {
+        return await _userService.ValidateTokenAsync(token);
+    }
+
 }

@@ -41,9 +41,24 @@ jobs:
     - name: Push Docker image
       run: |
           docker push lephuocbinh123/spending:latest
-
+          # --- Deploy lên Render ---
     - name: Trigger Render Deploy
       run:  |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             https://api.render.com/v1/services/srv-d3l8mhali9vc73emqlo0/deploys
+    
+    # --- Deploy lên Azure Web App ---
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Web App
+      run: |
+        az webapp config container set \
+          --name rg-student \
+          --resource-group DefaultResourceGroup-CCAN \
+          --container-image-name lephuocbinh123/spending:latest
+        az webapp restart --name rg-student --resource-group DefaultResourceGroup-CCAN
+
