@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Threading.RateLimiting;
 using Application.Infrastructure.Repositories;
 using Application.Services;
-using Application.WebSockets;
+//using Application.WebSockets;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -98,7 +98,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddSingleton<WebSocketConnectionManager>();
-builder.Services.AddSingleton<WebSocketHandler>();
+//builder.Services.AddSingleton<WebSocketHandler>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -111,17 +111,65 @@ builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 var app = builder.Build();
 
+app.UseWebSockets();
+
+app.Map("/chat", async context =>
+{
+    if (!context.WebSockets.IsWebSocketRequest)
+    {
+        context.Response.StatusCode = 400;
+        return;
+    }
+
+    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+
+    if (!int.TryParse(context.Request.Query["userId"], out var userId))
+    {
+        await webSocket.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, "Missing userId", CancellationToken.None);
+        return;
+    }
+
+    Console.WriteLine($"User {userId} connected");
+
+    var buffer = new byte[1024 * 4];
+
+    // Lưu connection
+    WebSocketConnectionManager.Instance.AddConnection(userId, webSocket);
+
+    try
+    {
+        var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        while (!result.CloseStatus.HasValue)
+        {
+            var msg = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            Console.WriteLine($"Received from {userId}: {msg}");
+
+            // Xử lý gửi tới người nhận
+            await WebSocketConnectionManager.Instance.SendToUserAsync(msg, userId);
+
+            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        }
+
+        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+    }
+    finally
+    {
+        WebSocketConnectionManager.Instance.RemoveConnection(userId, webSocket);
+        Console.WriteLine($"User {userId} disconnected");
+    }
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.MapPost("/ws/clear", (WebSocketConnectionManager manager) =>
-{
-    manager.ClearAllConnections();
-    return Results.Ok("All WebSocket connections cleared.");
-});
+//app.MapPost("/ws/clear", (WebSocketConnectionManager manager) =>
+//{
+//    manager.ClearAllConnections();
+//    return Results.Ok("All WebSocket connections cleared.");
+//});
 
 using (var scope = app.Services.CreateScope())
 {
@@ -130,8 +178,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-var wsHandler = app.Services.GetRequiredService<WebSocketHandler>();
-wsHandler.StartServer("ws://0.0.0.0"); // không chỉ định port
+//var wsHandler = app.Services.GetRequiredService<WebSocketHandler>();
+//wsHandler.StartServer("ws://0.0.0.0"); // không chỉ định port
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
