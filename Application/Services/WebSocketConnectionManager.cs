@@ -1,50 +1,48 @@
 using Fleck;
+using System.Net.WebSockets;
+using System.Text.Json;
+using System.Text;
 
 namespace Application.Services;
 
 public class WebSocketConnectionManager
 {
-    private readonly Dictionary<int, List<IWebSocketConnection>> _connections = new();
+    private readonly Dictionary<int, List<WebSocket>> _connections = new();
 
-    
-    public void AddConnection(int userId, IWebSocketConnection connection)
+    private static WebSocketConnectionManager? _instance;
+    public static WebSocketConnectionManager Instance => _instance ??= new WebSocketConnectionManager();
+
+    public void AddConnection(int userId, WebSocket socket)
     {
-        if (!_connections.ContainsKey(userId))
-            _connections[userId] = new List<IWebSocketConnection>();
-
-        _connections[userId].Add(connection);
+        if (!_connections.ContainsKey(userId)) _connections[userId] = new List<WebSocket>();
+        _connections[userId].Add(socket);
     }
 
-
-
-    public void RemoveConnection(int userId, IWebSocketConnection connection)
+    public void RemoveConnection(int userId, WebSocket socket)
     {
         if (_connections.TryGetValue(userId, out var list))
         {
-            list.Remove(connection);
-            if (list.Count == 0)
-                _connections.Remove(userId);
+            list.Remove(socket);
+            if (list.Count == 0) _connections.Remove(userId);
         }
     }
-    
-    public IEnumerable<IWebSocketConnection> GetConnections(int userId)
+
+    public async Task SendToUserAsync(string message, int fromUserId)
     {
-        return _connections.TryGetValue(userId, out var list) ? list : Enumerable.Empty<IWebSocketConnection>();
-    }
-    
-    public void ClearAllConnections()
-    {
-        foreach (var list in _connections.Values)
+        var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(message);
+        if (dict == null || !dict.TryGetValue("toUserId", out var toUser)) return;
+
+        if (int.TryParse(toUser, out var toUserId) && _connections.TryGetValue(toUserId, out var sockets))
         {
-            foreach (var conn in list)
+            var json = JsonSerializer.Serialize(new { fromUserId, text = dict["text"] });
+            foreach (var sock in sockets.ToList())
             {
-                if (conn.IsAvailable)
+                if (sock.State == WebSocketState.Open)
                 {
-                    conn.Close(); // đóng socket
+                    var bytes = Encoding.UTF8.GetBytes(json);
+                    await sock.SendAsync(bytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
         }
-        _connections.Clear(); // xóa danh sách
     }
-
 }
