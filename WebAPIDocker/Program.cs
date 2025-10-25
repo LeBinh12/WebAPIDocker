@@ -123,6 +123,13 @@ app.MapPost("/ws/clear", (WebSocketConnectionManager manager) =>
     return Results.Ok("All WebSocket connections cleared.");
 });
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ExpenseDbContext>();
+    db.Database.Migrate(); // tự động tạo DB hoặc cập nhật schema nếu có migration mới
+}
+
+
 var wsHandler = app.Services.GetRequiredService<WebSocketHandler>();
 wsHandler.StartServer("ws://0.0.0.0:8181");
 
