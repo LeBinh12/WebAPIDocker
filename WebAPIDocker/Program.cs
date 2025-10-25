@@ -131,7 +131,7 @@ using (var scope = app.Services.CreateScope())
 
 
 var wsHandler = app.Services.GetRequiredService<WebSocketHandler>();
-wsHandler.StartServer("ws://0.0.0.0:8181");
+wsHandler.StartServer("ws://0.0.0.0"); // không chỉ định port
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
