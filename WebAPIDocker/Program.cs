@@ -13,6 +13,7 @@ using sepending.Application.Services;
 using WebAPIDocker.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 
 // setup nếu dùng RateLimit ở program.cs
 //builder.Services.AddRateLimiter(options =>
