@@ -13,7 +13,8 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=${DB_HOST};Database=${DB_DATABASE};Username=${DB_USERNAME};Password=${DB_PASSWORD};SSL Mode=VerifyFull;Trust Server Certificate=true
+#      - ConnectionStrings__DefaultConnection=Host=${DB_HOST};Database=${DB_DATABASE};Username=${DB_USERNAME};Password=${DB_PASSWORD};SSL Mode=VerifyFull;Trust Server Certificate=true
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
 
     restart: always
   
