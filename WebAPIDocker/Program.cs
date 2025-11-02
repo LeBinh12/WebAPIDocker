@@ -13,6 +13,7 @@ using sepending.Application.Services;
 using WebAPIDocker.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:80");
 
 // setup nếu dùng RateLimit ở program.cs
 //builder.Services.AddRateLimiter(options =>
@@ -66,16 +67,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowFrontend",
+//        policy => policy
+//            .WithOrigins("http://localhost:5173") // domain frontend
+//            .AllowAnyHeader()
+//            .AllowAnyMethod()
+//            .AllowCredentials()
+//    );
+//});
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy => policy
-            .WithOrigins("http://localhost:5173") // domain frontend
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-    );
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()   // cho phép tất cả domain
+            .AllowAnyHeader()   // cho phép tất cả header
+            .AllowAnyMethod();  // cho phép tất cả method
+    });
 });
+
 
 builder.Services.AddDbContext<ExpenseDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -182,7 +195,7 @@ using (var scope = app.Services.CreateScope())
 //wsHandler.StartServer("ws://0.0.0.0"); // không chỉ định port
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 app.UseMiddleware<ExceptionMiddleware>();
 
 // app.UseMiddleware<RateLimitMiddleware>(5, 10);
