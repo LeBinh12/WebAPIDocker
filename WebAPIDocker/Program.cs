@@ -67,14 +67,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
+    options.AddPolicy("AllowAll",
         policy => policy
-            .WithOrigins("http://localhost:5173") // domain frontend
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
+            .AllowAnyOrigin()    // cho phép mọi domain
+            .AllowAnyHeader()    // cho phép mọi header
+            .AllowAnyMethod()    // cho phép mọi method (GET, POST, PUT, DELETE,…)
     );
 });
+
 
 builder.Services.AddDbContext<ExpenseDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -125,7 +125,7 @@ if (app.Environment.IsDevelopment())
 //wsHandler.StartServer("ws://0.0.0.0:8181");
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 app.UseMiddleware<ExceptionMiddleware>();
 
 // app.UseMiddleware<RateLimitMiddleware>(5, 10);
