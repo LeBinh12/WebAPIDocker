@@ -43,6 +43,7 @@ jobs:
           docker push lephuocbinh123/spending:latest
           # --- Deploy lên Render ---
     - name: Trigger Render Deploy
+      if: github.ref == 'refs/heads/production'
       run:  |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
